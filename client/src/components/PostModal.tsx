@@ -103,7 +103,9 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
       >
         {/* 헤더 */}
         <div className='relative w-full'>
-          {post.thumbnail_url && <img src={post.thumbnail_url} alt={post.title} className='h-[100dvh] w-full object-cover' />}
+          {post.thumbnail_url && (
+            <img src={post.thumbnail_url} alt={post.title} className='h-[100dvh] w-full object-cover' />
+          )}
 
           <button
             onClick={onClose}
@@ -132,7 +134,7 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
               <div className='space-y-3'>
                 {post.content_json.annotations.map((ann: any) => (
                   <div key={ann.id} className=''>
-                    <p className='text-sm text-gray-600 mb-1'>"{ann.selectedText}"</p>
+                    <p className='text-sm text-gray-600 mb-1'>{`"${ann.selectedText}"`}</p>
                     <p className='text-sm font-medium'>{ann.annotationText}</p>
                   </div>
                 ))}

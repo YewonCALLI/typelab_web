@@ -267,7 +267,7 @@ export default function RichTextEditor({ content, onChange, userId }: RichTextEd
         <div className='border-t-2 border-gray-300 pt-2'>
           {annotations.map((ann) => (
             <div key={ann.id} className='p-3'>
-              <p className='text-sm text-gray-600 mb-1'>"{ann.selectedText}"</p>
+              <p className='text-sm text-gray-600 mb-1'>{`"${ann.selectedText}"`}</p>
               <p className='text-sm font-medium'>{ann.annotationText}</p>
             </div>
           ))}
