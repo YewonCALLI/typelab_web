@@ -126,20 +126,6 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
           </div>
         </div>
 
-        {post.content_json?.annotations?.length > 0 && (
-          <div className='mt-12 pt-8 border-t-2 border-gray-300'>
-            <h3 className='text-lg font-semibold mb-4'>주석</h3>
-            <div className='space-y-3'>
-              {post.content_json.annotations.map((ann: any) => (
-                <div key={ann.id} className='bg-yellow-50 p-3 rounded border-l-4 border-yellow-400'>
-                  <p className='text-sm text-gray-600 mb-1'>"{ann.selectedText}"</p>
-                  <p className='text-sm font-medium'>{ann.annotationText}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* 하단 액션 */}
         <div className='sticky bottom-0 bg-white border-t p-6 flex gap-3'>
           <button
