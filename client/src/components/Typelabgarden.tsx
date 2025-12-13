@@ -1,39 +1,48 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import './TypelabGarden.css'
+import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
+import PostModal from './PostModal'
 
 interface Post {
   id: string
-  authorId: string
-  publishedAt: Date
+  author_id: string
+  title: string
+  content: string
+  published_at: string
+  category: string
 }
 
 interface Tile {
   id: number
+  date: Date
+  dateString: string
   type: 'soil' | 'grass-short' | 'grass-medium' | 'grass-tall' | 'water'
   color: string
-  postCount: number
-  title: string
-  author: string
-  date: string
+  posts: Post[]
 }
 
 interface TypelabGardenProps {
-  posts?: Post[]
-  gridSize?: number
+  initialPostId?: string
 }
 
-const TypelabGarden: React.FC<TypelabGardenProps> = ({ posts = [], gridSize = 120 }) => {
+const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
   const [tiles, setTiles] = useState<Tile[]>([])
   const [hoveredTile, setHoveredTile] = useState<number | null>(null)
+  const [selectedTile, setSelectedTile] = useState<number | null>(null)
+  const [totalPosts, setTotalPosts] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+  const [profiles, setProfiles] = useState<{ [key: string]: { display_name: string } }>({})
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(initialPostId || null)
+  const router = useRouter()
 
-  // 색상 팔레트
   const colors = {
-    soil: ['#7A5448'],
-    lime: ['#D3EB6C'],
-    blue: ['#3AA8FF'],
-    yellow: ['#CDDC39'],
+    soil: '#7A5448',
+    blue: '#3AA8FF',
     grass: {
       short: '#CDDC39',
       medium: '#D3EB6C',
@@ -41,114 +50,126 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ posts = [], gridSize = 12
     },
   }
 
-  // 랜덤 타이틀 생성 함수
-  const generateRandomTitle = () => {
-    const titles = [
-      '프로젝트 제목인가요?',
-      '오늘의 개발 일지',
-      '타입랩의 미래는 어떻게 될까요?',
-      '점심 메뉴는 무엇으로 할까요?',
-      '어떻게 하면 더 나은 코드를 작성할 수 있을까요?',
-      'GLSL 쉐이더로 불꽃 효과 만들기',
-    ]
-    return titles[Math.floor(Math.random() * titles.length)]
+  const toKSTDateString = (utcDate: Date | string): string => {
+    const date = new Date(utcDate)
+    const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
+    return kstDate.toISOString().split('T')[0]
   }
 
-  const generateRandomAuthor = () => {
-    const authors = ['장예원', '박성훈', '김지혜', '한용파', '한예슬']
-    return authors[Math.floor(Math.random() * authors.length)]
+  const getKSTToday = (): Date => {
+    const now = new Date()
+    const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000)
+    const kstDateString = kstNow.toISOString().split('T')[0]
+    return new Date(kstDateString + 'T00:00:00.000Z')
   }
 
-  const generateRandomDate = () => {
-    const year = 2025
-    const month = Math.floor(Math.random() * 12) + 1
-    const day = Math.floor(Math.random() * 28) + 1
-    return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`
-  }
-
-  // 타일 초기화
   useEffect(() => {
-    const initialTiles: Tile[] = []
+    if (initialPostId) {
+      setSelectedPostId(initialPostId)
+    }
+  }, [initialPostId])
 
-    for (let i = 0; i < gridSize; i++) {
-      const rand = Math.random()
-      let type: Tile['type'] = 'soil'
-      let color = colors.soil[0]
+  useEffect(() => {
+    const loadGarden = async () => {
+      setLoading(true)
 
-      if (rand < 0.15) {
-        type = 'water'
-        color = colors.blue[0]
-      } else if (rand < 0.3) {
-        type = 'grass-short'
-        color = colors.grass.short
-      } else if (rand < 0.4) {
-        type = 'grass-medium'
-        color = colors.grass.medium
-      } else if (rand < 0.5) {
-        type = 'grass-tall'
-        color = colors.grass.tall
+      const startDate = new Date('2025-11-02T00:00:00.000Z')
+      const endDate = getKSTToday()
+
+      const { data: posts, error } = await supabase
+        .from('posts')
+        .select('*')
+        .gte('published_at', startDate.toISOString())
+        .order('published_at', { ascending: true })
+
+      if (error) {
+        console.error('Error loading posts:', error)
+        setLoading(false)
+        return
       }
 
-      initialTiles.push({
-        id: i,
-        type,
-        color,
-        postCount: 0,
-        title: generateRandomTitle(),
-        author: generateRandomAuthor(),
-        date: generateRandomDate(),
-      })
-    }
+      setTotalPosts(posts?.length || 0)
 
-    setTiles(initialTiles)
-  }, [gridSize])
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
-  // 글 발행에 따라 잔디 성장
-  useEffect(() => {
-    if (posts.length === 0) return
-
-    setTiles((prevTiles) => {
-      if (prevTiles.length === 0) return prevTiles
-
-      const newTiles = [...prevTiles]
-
-      // 토양 + 잔디 타일만 필터링
-      const soilTiles = newTiles.filter((tile) => tile.type === 'soil' || tile.type.startsWith('grass'))
-
-      // 글 개수에 따라 잔디 성장
-      posts.forEach((post, index) => {
-        if (index < soilTiles.length) {
-          const tile = soilTiles[index]
-          const tileIndex = newTiles.findIndex((t) => t.id === tile.id)
-
-          if (tileIndex !== -1) {
-            const updatedCount = newTiles[tileIndex].postCount + 1
-
-            newTiles[tileIndex] = {
-              ...newTiles[tileIndex],
-              postCount: updatedCount,
-              type: updatedCount >= 5 ? 'grass-tall' : updatedCount >= 3 ? 'grass-medium' : 'grass-short',
-            }
-          }
+      const postsByDate = new Map<string, Post[]>()
+      posts?.forEach((post) => {
+        const dateKey = toKSTDateString(post.published_at)
+        if (!postsByDate.has(dateKey)) {
+          postsByDate.set(dateKey, [])
         }
+        postsByDate.get(dateKey)!.push(post)
       })
 
-      return newTiles
-    })
-  }, [posts])
+      if (posts && posts.length > 0) {
+        const authorIds = Array.from(new Set(posts.map((p) => p.author_id)))
 
-  const getGrassColor = (type: Tile['type']): string => {
-    switch (type) {
-      case 'grass-short':
-        return colors.grass.short
-      case 'grass-medium':
-        return colors.grass.medium
-      case 'grass-tall':
-        return colors.grass.tall
-      default:
-        return ''
+        const { data: profilesData } = await supabase.from('profiles').select('id, display_name').in('id', authorIds)
+
+        if (profilesData) {
+          const profileMap: { [key: string]: { display_name: string } } = {}
+          profilesData.forEach((profile: any) => {
+            profileMap[profile.id] = { display_name: profile.display_name }
+          })
+          setProfiles(profileMap)
+        }
+      }
+
+      const newTiles: Tile[] = []
+
+      for (let i = 0; i < daysDiff; i++) {
+        const date = new Date(startDate)
+        date.setDate(date.getDate() + i)
+        const dateString = date.toISOString().split('T')[0]
+
+        const dayPosts = postsByDate.get(dateString) || []
+        const postCount = dayPosts.length
+
+        let type: Tile['type'] = 'soil'
+        let color = colors.soil
+
+        if (postCount === 0) {
+          type = Math.random() < 0.2 ? 'water' : 'soil'
+          color = type === 'water' ? colors.blue : colors.soil
+        } else if (postCount >= 3) {
+          type = 'grass-tall'
+          color = colors.grass.tall
+        } else if (postCount === 2) {
+          type = 'grass-medium'
+          color = colors.grass.medium
+        } else if (postCount === 1) {
+          type = 'grass-short'
+          color = colors.grass.short
+        }
+
+        newTiles.push({
+          id: i,
+          date,
+          dateString,
+          type,
+          color,
+          posts: dayPosts,
+        })
+      }
+
+      setTiles(newTiles)
+      setLoading(false)
     }
-  }
+
+    loadGarden()
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.garden-tile') && !target.closest('.tile-title')) {
+        setSelectedTile(null)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   const getGrassHeight = (type: Tile['type']): number => {
     switch (type) {
@@ -163,58 +184,182 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ posts = [], gridSize = 12
     }
   }
 
+  const getAuthorNames = (posts: Post[]): string => {
+    if (posts.length === 0) return ''
+    if (posts.length === 1) {
+      return profiles[posts[0].author_id]?.display_name || '익명'
+    }
+    const firstAuthor = profiles[posts[0].author_id]?.display_name || '익명'
+    return `${firstAuthor} 외 ${posts.length - 1}명`
+  }
+
+  const formatDate = (date: Date): string => {
+    return `${date.getFullYear()}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`
+  }
+
+  const handleTileClick = (tile: Tile) => {
+    if (tile.posts.length > 0) {
+      if (selectedTile === tile.id) {
+        setSelectedTile(null)
+      } else {
+        setSelectedTile(tile.id)
+      }
+    }
+  }
+
+  // SVG 패턴 생성
+  const getDotPattern = (type: Tile['type']) => {
+    let color = '#CDDC39' // lime
+
+    if (type === 'soil') {
+      color = '#CDDC39'
+    } else if (type === 'water') {
+      color = '#D3EB6C'
+    } else if (type.startsWith('grass')) {
+      color = '#7A5448' // brown
+    }
+
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='none'/%3E%3Crect x='0' y='0' width='6' height='12' fill='${encodeURIComponent(color)}'/%3E%3Crect x='48' y='0' width='6' height='12' fill='${encodeURIComponent(color)}'/%3E%3Crect x='24' y='48' width='6' height='12' fill='${encodeURIComponent(color)}'/%3E%3Crect x='72' y='48' width='6' height='12' fill='${encodeURIComponent(color)}'/%3E%3C/svg%3E`
+  }
+
+  const displayTile = selectedTile !== null ? selectedTile : hoveredTile
+
+  if (loading) {
+  }
+
   return (
-    <div className='typelab-garden'>
-      <div className='garden-header'>
-        <div
-          className={`relative text-white text-[clamp(3rem,14vw,9rem)] z-10 left-[50vw] lg:left-4 transform -translate-x-1/2 lg:translate-x-0 transition-all duration-300 ${
-            hoveredTile !== null ? 'hovered-title' : ''
-          }`}
-        >
-          Typelab
+    <div className="w-screen min-h-screen bg-[#6b5244] flex flex-col font-['Goorm_Sans'] ">
+      {/* Header */}
+      <div className='flex fixed z-20 flex-col gap-1 lg:w-fit pointer-events-none'>
+        <div className='flex lg:justify-start pl-4'>
+          <motion.div
+            className='text-white tracking-tight'
+            animate={{
+              fontSize: displayTile !== null ? 'clamp(3rem, 3vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            Typelab
+          </motion.div>
         </div>
-        {hoveredTile !== null && (
-          <div className='tile-title-display'>{tiles.find((t) => t.id === hoveredTile)?.title}</div>
-        )}
+
+        {/* Stats */}
+        {/* <div className='flex gap-8 text-white'>
+          <div className='flex flex-col items-center gap-1'>
+            <div className='text-2xl font-bold text-[#C8D932]'>{totalPosts}</div>
+            <div className='text-sm opacity-80'>총 글 수</div>
+          </div>
+          <div className='flex flex-col items-center gap-1'>
+            <div className='text-2xl font-bold text-[#C8D932]'>{tiles.length}</div>
+            <div className='text-sm opacity-80'>일</div>
+          </div>
+        </div> */}
+
+        {/* Titles */}
+        <AnimatePresence>
+          {displayTile !== null && tiles[displayTile]?.posts.length > 0 && (
+            <div className='flex flex-col gap-0 px-4 lg:p-0 pointer-events-auto'>
+              {tiles[displayTile].posts
+                .filter((post) => !selectedPostId || post.id === selectedPostId) 
+                .map((post, index) => (
+                  <motion.div
+                    key={post.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: selectedPostId ? 0 : index * 0.15 }}
+                    className='w-full lg:max-w-[90vw]'
+                  >
+                    <button
+                      onClick={() => {
+                        setSelectedPostId(post.id)
+                        window.history.pushState({}, '', `/?postId=${post.id}`)
+                      }}
+                      className='tile-title block w-full text-left bg-white text-[#2d2d2d] px-3 py-2 lg:px-8 lg:py-4 text-[clamp(1.5rem,4vw,3rem)] font-normal transition-all duration-200 hover:text-white hover:bg-black focus:text-white focus:bg-black'
+                    >
+                      {post.title}
+                    </button>
+                  </motion.div>
+                ))}
+            </div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className='garden-grid'>
-        {tiles.map((tile) => (
-          <div
-            key={tile.id}
-            className={`garden-tile ${tile.type} ${hoveredTile === tile.id ? 'hovered' : ''}`}
-            style={{
-              backgroundColor: tile.type.startsWith('grass') ? getGrassColor(tile.type) : tile.color,
+      <AnimatePresence>
+        {selectedPostId && (
+          <PostModal
+            postId={selectedPostId}
+            onClose={() => {
+              setSelectedPostId(null)
+              window.history.pushState({}, '', '/')
             }}
-            onMouseEnter={() => tile.type.startsWith('grass') && setHoveredTile(tile.id)}
-            onMouseLeave={() => tile.type.startsWith('grass') && setHoveredTile(null)}
-          >
-            {/* 벽돌 패턴 - CSS로 구현 */}
-            <div className='tile-dots' />
+          />
+        )}
+      </AnimatePresence>
 
-            {/* 잔디 */}
+      {/* Grid */}
+      <div className='absolute w-screen overflow-hidden grid grid-cols-[repeat(auto-fit,minmax(80px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(100px,1fr))]'>
+        {tiles.map((tile) => (
+          <motion.div
+            key={tile.id}
+            className={`garden-tile aspect-square relative overflow-hidden ${
+              tile.posts.length > 0 ? 'cursor-pointer' : ''
+            }`}
+            style={{ backgroundColor: tile.color }}
+            onMouseEnter={() => tile.posts.length > 0 && setHoveredTile(tile.id)}
+            onMouseLeave={() => setHoveredTile(null)}
+            onClick={() => handleTileClick(tile)}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Dot Pattern */}
+            <div
+              className='absolute inset-0 pointer-events-none'
+              style={{
+                backgroundImage: `url("${getDotPattern(tile.type)}")`,
+                backgroundSize: '32px 32px',
+                backgroundRepeat: 'repeat',
+              }}
+            />
+
+            {/* Grass */}
             {tile.type.startsWith('grass') && (
-              <div className='grass-container'>
-                {Array.from({ length: getGrassHeight(tile.type) }).map((_, i) => (
-                  <div
-                    key={i}
-                    className='grass-blade'
-                    style={{
-                      animationDelay: `${i * 0.1}s`,
-                      left: `${(i / getGrassHeight(tile.type)) * 100}%`,
-                    }}
-                  />
-                ))}
-              </div>
+              <div className='absolute bottom-0 left-0 right-0 h-full flex items-end justify-around px-[10%] pointer-events-none'></div>
             )}
-            {tile.type === 'water' && <div className='water-ripple' />}
-            {hoveredTile === tile.id && tile.type.startsWith('grass') && (
-              <div className='tile-info-overlay'>
-                <div className='tile-info-date'>{tile.date}</div>
-                <div className='tile-info-author'>{tile.author}</div>
-              </div>
+
+            {/* Water Ripple */}
+            {tile.type === 'water' && (
+              <motion.div
+                className='absolute inset-0 bg-blue-400 opacity-20'
+                animate={{
+                  opacity: [0.2, 0.4, 0.2],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
             )}
-          </div>
+
+            {/* Info Overlay */}
+            <AnimatePresence>
+              {displayTile === tile.id && tile.posts.length > 0 && (
+                <motion.div
+                  className='absolute bottom-0 left-0 right-0 bg-white p-2 flex flex-col gap-1 z-0'
+                  initial={{ y: '100%', opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: '100%', opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className='text-xs text-gray-600'>{formatDate(tile.date)}</div>
+                  <div className='text-xs text-[#2d2d2d] font-medium'>
+                    {tile.posts.map((post) => profiles[post.author_id]?.display_name || '익명').join(', ')}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         ))}
       </div>
     </div>
