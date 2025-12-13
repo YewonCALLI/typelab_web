@@ -112,7 +112,7 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
             className='
           fixed top-2 right-2
           text-white/80 hover:text-white
-          text-5xl w-14 h-14
+          text-3xl w-10 h-10
           flex items-center justify-center z-40 mix-blend-difference'
           >
             ×

@@ -230,12 +230,12 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
   return (
     <div className="w-screen min-h-screen bg-[#6b5244] flex flex-col font-['Goorm_Sans'] ">
       {/* Header */}
-      <div className='flex fixed z-20 flex-col gap-1 lg:w-fit pointer-events-none'>
-        <div className='flex lg:justify-start pl-4'>
+      <div className='flex fixed z-20 flex-col lg:w-fit pointer-events-none mix-blend-difference pl-4 pt-1'>
+        <div className='flex lg:justify-start'>
           <motion.div
-            className='text-white tracking-tight'
+            className='text-white tracking-tight mix-blend-difference'
             animate={{
-              fontSize: displayTile !== null ? 'clamp(3rem, 3vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
+              fontSize: displayTile !== null ? 'clamp(2rem, 3vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
             }}
             transition={{ duration: 0.3 }}
           >
@@ -256,11 +256,13 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
         </div> */}
 
         {/* Titles */}
+      </div>
+      <div className='flex fixed z-20 flex-col gap-1 top-[56px] lg:w-fit pointer-events-none'>
         <AnimatePresence>
           {displayTile !== null && tiles[displayTile]?.posts.length > 0 && (
             <div className='flex flex-col gap-0 px-4 lg:p-0 pointer-events-auto'>
               {tiles[displayTile].posts
-                .filter((post) => !selectedPostId || post.id === selectedPostId) 
+                .filter((post) => !selectedPostId || post.id === selectedPostId)
                 .map((post, index) => (
                   <motion.div
                     key={post.id}
@@ -285,7 +287,6 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
           )}
         </AnimatePresence>
       </div>
-
       <AnimatePresence>
         {selectedPostId && (
           <PostModal
