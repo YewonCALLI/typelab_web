@@ -160,6 +160,9 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
   }, [])
 
   useEffect(() => {
+    // PostModal이 열려있을 때는 handleClickOutside 작동하지 않음
+    if (selectedPostId) return
+
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       if (!target.closest('.garden-tile') && !target.closest('.tile-title')) {
@@ -169,7 +172,7 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
 
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [])
+  }, [selectedPostId])
 
   const getGrassHeight = (type: Tile['type']): number => {
     switch (type) {
@@ -230,12 +233,14 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
   return (
     <div className="w-screen min-h-screen bg-[#6b5244] flex flex-col font-['Goorm_Sans'] ">
       {/* Header */}
-      <div className='flex fixed z-20 flex-col lg:w-fit pointer-events-none mix-blend-difference pl-4 pt-1'>
+      <div
+        className={`flex fixed z-20 flex-col lg:w-fit pointer-events-none pl-4 pt-1 ${selectedPostId ? 'mix-blend-difference' : ''}`}
+      >
         <div className='flex lg:justify-start'>
           <motion.div
-            className='text-white tracking-tight mix-blend-difference'
+            className={`tracking-tight ${selectedPostId ? 'text-white' : 'text-white'}`}
             animate={{
-              fontSize: displayTile !== null ? 'clamp(2rem, 3vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
+              fontSize: (displayTile !== null || selectedPostId) ? 'clamp(2rem, 3.5vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
             }}
             transition={{ duration: 0.3 }}
           >
@@ -257,32 +262,63 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
 
         {/* Titles */}
       </div>
-      <div className='flex fixed z-20 flex-col gap-1 top-[56px] lg:top-20 lg:w-fit pointer-events-none'>
+      <div className='flex fixed z-20 flex-col gap-2 top-[56px] lg:top-20 xl:top-24 2xl:top-32 pointer-events-none'>
         <AnimatePresence>
-          {displayTile !== null && tiles[displayTile]?.posts.length > 0 && (
-            <div className='flex flex-col gap-0 px-4 lg:p-0 pointer-events-auto'>
-              {tiles[displayTile].posts
-                .filter((post) => !selectedPostId || post.id === selectedPostId)
-                .map((post, index) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ delay: selectedPostId ? 0 : index * 0.15 }}
-                    className='w-full lg:max-w-[90vw]'
-                  >
-                    <button
-                      onClick={() => {
-                        setSelectedPostId(post.id)
-                        window.history.pushState({}, '', `/?postId=${post.id}`)
-                      }}
-                      className='tile-title block w-full text-left bg-white text-[#2d2d2d] px-3 py-2 lg:px-8 lg:py-4 text-[clamp(1.5rem,4vw,3rem)] font-normal transition-all duration-200 hover:text-white hover:bg-black focus:text-white focus:bg-black'
+          {(displayTile !== null || selectedPostId) && tiles.length > 0 && (
+            <div className='flex flex-col gap-2 px-4 lg:p-0 pointer-events-auto'>
+              {selectedPostId ? (
+                // PostModal이 열려있을 때: 선택된 포스트의 타이틀만 표시
+                (() => {
+                  const selectedPost = tiles.flatMap(tile => tile.posts).find(post => post.id === selectedPostId)
+                  return selectedPost ? (
+                    <motion.div
+                      key={selectedPost.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className='w-full lg:max-w-[90vw]'
                     >
-                      {post.title}
-                    </button>
-                  </motion.div>
-                ))}
+                      <button
+                        onClick={() => {
+                          setSelectedPostId(selectedPost.id)
+                          window.history.pushState({}, '', `/?postId=${selectedPost.id}`)
+                        }}
+                        className='tile-title block w-fit text-left bg-black text-white px-3 py-2 lg:px-8 lg:py-4 text-[clamp(1.5rem,4vw,3rem)] font-normal transition-all duration-200'
+                      >
+                        {selectedPost.title}
+                      </button>
+                    </motion.div>
+                  ) : null
+                })()
+              ) : (
+                // PostModal이 닫혀있을 때: 호버/선택된 타일의 포스트들 표시
+                displayTile !== null && tiles[displayTile]?.posts.length > 0 && (
+                  tiles[displayTile].posts.map((post, index) => (
+                    <motion.div
+                      key={post.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ delay: index * 0.15 }}
+                      className='lg:max-w-[90vw]'
+                    >
+                      <button
+                        onClick={() => {
+                          setSelectedPostId(post.id)
+                          window.history.pushState({}, '', `/?postId=${post.id}`)
+                        }}
+                        className={`tile-title block text-left px-3 py-2 lg:px-8 lg:py-4 text-[clamp(1.5rem,4vw,3rem)] font-normal transition-all duration-200 ${
+                          selectedPostId === post.id
+                            ? 'bg-black text-white'
+                            : 'bg-white text-[#2d2d2d] hover:text-white hover:bg-black focus:text-white focus:bg-black'
+                        }`}
+                      >
+                        {post.title}
+                      </button>
+                    </motion.div>
+                  ))
+                )
+              )}
             </div>
           )}
         </AnimatePresence>

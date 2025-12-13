@@ -74,7 +74,6 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
       >
         <div className='text-white text-xl'>로딩 중...</div>
       </motion.div>
@@ -91,7 +90,6 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
     >
       <motion.div
         className='bg-white w-screen max-h-[100vh] overflow-y-auto relative'
@@ -104,7 +102,7 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
         {/* 헤더 */}
         <div className='relative w-full'>
           {post.thumbnail_url && (
-            <img src={post.thumbnail_url} alt={post.title} className='h-[80dvh] lg:h-[20dvh] w-full object-cover' />
+            <img src={post.thumbnail_url} alt={post.title} className='h-[80dvh] lg:h-[14vw] w-full object-cover' />
           )}
 
           <button
