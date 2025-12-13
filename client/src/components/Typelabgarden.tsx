@@ -257,7 +257,7 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
 
         {/* Titles */}
       </div>
-      <div className='flex fixed z-20 flex-col gap-1 top-[56px] lg:w-fit pointer-events-none'>
+      <div className='flex fixed z-20 flex-col gap-1 top-[56px] lg:top-20 lg:w-fit pointer-events-none'>
         <AnimatePresence>
           {displayTile !== null && tiles[displayTile]?.posts.length > 0 && (
             <div className='flex flex-col gap-0 px-4 lg:p-0 pointer-events-auto'>
