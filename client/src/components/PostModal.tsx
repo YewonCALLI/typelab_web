@@ -104,7 +104,7 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
         {/* 헤더 */}
         <div className='relative w-full'>
           {post.thumbnail_url && (
-            <img src={post.thumbnail_url} alt={post.title} className='h-[100dvh] w-full object-cover' />
+            <img src={post.thumbnail_url} alt={post.title} className='h-[80dvh] w-full object-cover' />
           )}
 
           <button
