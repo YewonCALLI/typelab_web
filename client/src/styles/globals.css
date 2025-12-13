@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 @layer base {
-
   * {
     box-sizing: border-box;
   }
@@ -58,7 +57,6 @@
     /* 16px */
     background: #fff;
     font-size: 100%;
-
   }
 
   /* ( 크롬, 사파리, 오페라, 엣지 ) 동작 */
@@ -123,5 +121,143 @@
     /* 스크롤바 호버 색상 */
   }
 
+  /* Tiptap 에디터 스타일 */
+  .ProseMirror {
+    min-height: 400px;
+    font-family: var(--font-pretendard);
+    line-height: 2.0;
+  }
 
+  .prose {
+    line-height: 2.0;
+  }
+
+  
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #adb5bd;
+    pointer-events: none;
+    height: 0;
+  }
+
+  /* 제목 스타일 - 에디터용 (!important 추가) */
+  .ProseMirror h1 {
+    font-family: var(--font-pretendard) !important;
+    font-size: 20pt !important;
+    font-weight: 600 !important;
+    line-height: 1.85 !important;
+    margin-top: 2rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .ProseMirror h2 {
+    font-family: var(--font-pretendard) !important;
+    font-size: 20pt !important;
+    font-weight: 400 !important;
+    line-height: 1.85 !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .ProseMirror h3 {
+    font-family: var(--font-pretendard) !important;
+    font-size: 16pt !important;
+    font-weight: 400 !important;
+    line-height: 1.85 !important;
+    margin-top: 1.25rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Post 페이지 제목 스타일 (!important 추가) */
+  .prose h1 {
+    font-family: var(--font-pretendard) !important;
+    font-size: 20pt !important;
+    font-weight: 600 !important;
+    line-height: 1.85 !important;
+    margin-top: 2rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .prose h2 {
+    font-family: var(--font-pretendard) !important;
+    font-size: 20pt !important;
+    font-weight: 400 !important;
+    line-height: 1.85 !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .prose h3 {
+    font-family: var(--font-pretendard) !important;
+    font-size: 16pt !important;
+    font-weight: 400 !important;
+    line-height: 1.85 !important;
+    margin-top: 1.25rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .ProseMirror p {
+    font-family: var(--font-pretendard);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    line-height: 2.0 !important;
+  }
+
+  .prose p {
+    line-height: 2.0 !important;
+  }
+
+  /* 이미지 캡션 */
+  .ProseMirror figure[data-type='image-with-caption'] {
+    margin: 2rem 0;
+  }
+
+  .ProseMirror figure img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  .ProseMirror figcaption {
+    text-align: center;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  .prose figure[data-type='image-with-caption'] {
+    margin: 2rem 0;
+  }
+
+  .prose figure img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  .prose figcaption {
+    text-align: center;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  /* 주석 마크 */
+  .annotation-mark {
+    background-color: #fef3c7;
+    padding: 0 2px;
+    border-radius: 2px;
+    cursor: help;
+  }
+
+  .annotation-mark:hover {
+    background-color: #fde68a;
+  }
+
+  .ProseMirror:focus {
+    outline: none;
+  }
 }
