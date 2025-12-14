@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import TypelabGarden from '@/components/Typelabgarden'
 import Category from '@/components/Button/Category'
 import Toggle from '@/components/Button/Toggle'
 import TypelabList from '@/components/Typelablist'
 
-export default function Page() {
+function PageContent() {
   const [viewMode, setViewMode] = useState<'garden' | 'list'>('garden')
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const searchParams = useSearchParams()
@@ -68,5 +68,13 @@ export default function Page() {
       <Toggle showList={viewMode === 'list'} onToggle={handleToggle} />
       <Category viewMode={viewMode} />
     </>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#6b5244]" />}>
+      <PageContent />
+    </Suspense>
   )
 }

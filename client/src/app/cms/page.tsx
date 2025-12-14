@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import TypelabGarden from '@/components/Typelabgarden'
@@ -9,7 +9,7 @@ import Category from '@/components/Button/Category'
 import Toggle from '@/components/Button/Toggle'
 import CMSHeader from '@/components/CMSHeader'
 
-export default function CMSPage() {
+function CMSPageContent() {
   const [viewMode, setViewMode] = useState<'garden' | 'list'>('garden')
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
@@ -101,5 +101,17 @@ export default function CMSPage() {
       <Toggle showList={viewMode === 'list'} onToggle={handleToggle} />
       <Category viewMode={viewMode} />
     </>
+  )
+}
+
+export default function CMSPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#6b5244] flex items-center justify-center">
+        <div className="text-white text-xl">로딩 중...</div>
+      </div>
+    }>
+      <CMSPageContent />
+    </Suspense>
   )
 }
