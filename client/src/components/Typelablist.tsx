@@ -16,23 +16,18 @@ interface Post {
 }
 
 interface TypelabListProps {
-  initialPostId?: string
+  initialPostId?: string | null
+  onPostSelect: (postId: string) => void
+  onPostClose: () => void
   onClose: () => void
 }
 
-export default function TypelabList({ initialPostId, onClose }: TypelabListProps) {
+export default function TypelabList({ initialPostId, onPostSelect, onPostClose, onClose }: TypelabListProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const [profiles, setProfiles] = useState<{ [key: string]: { display_name: string } }>({})
   const [loading, setLoading] = useState(true)
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(initialPostId || null)
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'info' | 'document' | 'daily'>('all')
   const supabase = createClient()
-
-  useEffect(() => {
-    if (initialPostId) {
-      setSelectedPostId(initialPostId)
-    }
-  }, [initialPostId])
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -108,7 +103,6 @@ export default function TypelabList({ initialPostId, onClose }: TypelabListProps
           className='relative w-full max-w-7xl bg-white overflow-hidden max-h-[85vh] flex flex-col border border-black'
           onClick={(e) => e.stopPropagation()}
         >
-
           {/* 카테고리 필터 */}
           <div className='border-b border-black p-4'>
             <div className='flex gap-2 flex-wrap'>
@@ -117,9 +111,7 @@ export default function TypelabList({ initialPostId, onClose }: TypelabListProps
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-4 py-2 border border-black font-medium transition ${
-                    selectedCategory === cat
-                      ? 'bg-black text-white'
-                      : 'bg-white text-black'
+                    selectedCategory === cat ? 'bg-black text-white' : 'bg-white text-black'
                   }`}
                 >
                   {cat === 'all' ? '전체' : cat === 'info' ? '정보' : cat === 'document' ? '문서' : '일상'}
@@ -139,17 +131,12 @@ export default function TypelabList({ initialPostId, onClose }: TypelabListProps
                 {posts.map((post) => (
                   <motion.button
                     key={post.id}
-                    onClick={() => {
-                      setSelectedPostId(post.id)
-                      window.history.pushState({}, '', `/?postId=${post.id}`)
-                    }}
+                    onClick={() => onPostSelect(post.id)}
                     className='w-full text-left border border-black py-4 px-4 transition-all group'
                   >
                     <div className='flex items-start justify-between gap-4'>
                       <div className='flex-1 min-w-0'>
-                        <h3 className='text-lg font-semibold mb-2 transition-colors truncate'>
-                          {post.title}
-                        </h3>
+                        <h3 className='text-lg font-semibold mb-2 transition-colors truncate'>{post.title}</h3>
                         <div className='flex items-center gap-3 text-sm text-black'>
                           <span className='border border-black px-2 py-1 text-xs'>
                             {getCategoryLabel(post.category)}
@@ -160,11 +147,7 @@ export default function TypelabList({ initialPostId, onClose }: TypelabListProps
                       </div>
                       {post.thumbnail_url && (
                         <div className='w-20 h-20 flex-shrink-0 overflow-hidden bg-black'>
-                          <img
-                            src={post.thumbnail_url}
-                            alt={post.title}
-                            className='w-full h-full object-cover'
-                          />
+                          <img src={post.thumbnail_url} alt={post.title} className='w-full h-full object-cover' />
                         </div>
                       )}
                     </div>
@@ -178,15 +161,7 @@ export default function TypelabList({ initialPostId, onClose }: TypelabListProps
 
       {/* Post Modal */}
       <AnimatePresence>
-        {selectedPostId && (
-          <PostModal
-            postId={selectedPostId}
-            onClose={() => {
-              setSelectedPostId(null)
-              window.history.pushState({}, '', '/')
-            }}
-          />
-        )}
+        {initialPostId && <PostModal postId={initialPostId} onClose={onPostClose} />}
       </AnimatePresence>
     </>
   )

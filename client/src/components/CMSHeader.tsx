@@ -40,25 +40,25 @@ export default function CMSHeader() {
   }
 
   return (
-    <header className='fixed top-0 right-0 z-30 p-4 bg-white/90 backdrop-blur-sm shadow-sm'>
+    <header className='fixed top-0 left-1/2 -translate-x-1/2 z-30 p-2'>
       <div className="flex items-center gap-3">
         {user ? (
           <>
             <Link
               href="/write"
-              className='px-4 py-2 bg-[#C8D932] text-black rounded-lg font-normal transition'
+              className='px-4 py-2 bg-[#C8D932] text-black font-normal transition'
             >
               글쓰기
             </Link>
             <Link
               href="/my"
-              className='px-4 py-2 bg-gray-100 rounded-lg font-normal transition'
+              className='px-4 py-2 bg-gray-100 font-normal transition'
             >
               {profile?.display_name || '마이페이지'}
             </Link>
             <button
               onClick={handleLogout}
-              className='px-4 py-2 bg-gray-100 rounded-lg font-normal transition'
+              className='px-4 py-2 bg-gray-100 font-normal transition'
             >
               로그아웃
             </button>
@@ -66,7 +66,7 @@ export default function CMSHeader() {
         ) : (
           <Link
             href="/login"
-            className='px-4 py-2 bg-[#C8D932] text-black rounded-lg font-normal transition'
+            className='px-4 py-2 bg-[#C8D932] text-black font-normal transition'
           >
             로그인
           </Link>

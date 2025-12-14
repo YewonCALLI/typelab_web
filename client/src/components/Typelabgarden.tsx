@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import PostModal from './PostModal'
 
 interface Post {
@@ -26,10 +24,12 @@ interface Tile {
 }
 
 interface TypelabGardenProps {
-  initialPostId?: string
+  initialPostId?: string | null
+  onPostSelect: (postId: string) => void
+  onPostClose: () => void
 }
 
-const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
+const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId, onPostSelect, onPostClose }) => {
   const [tiles, setTiles] = useState<Tile[]>([])
   const [hoveredTile, setHoveredTile] = useState<number | null>(null)
   const [selectedTile, setSelectedTile] = useState<number | null>(null)
@@ -37,8 +37,6 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
   const [profiles, setProfiles] = useState<{ [key: string]: { display_name: string } }>({})
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(initialPostId || null)
-  const router = useRouter()
 
   const colors = {
     soil: '#7A5448',
@@ -62,12 +60,6 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
     const kstDateString = kstNow.toISOString().split('T')[0]
     return new Date(kstDateString + 'T00:00:00.000Z')
   }
-
-  useEffect(() => {
-    if (initialPostId) {
-      setSelectedPostId(initialPostId)
-    }
-  }, [initialPostId])
 
   useEffect(() => {
     const loadGarden = async () => {
@@ -161,7 +153,7 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
 
   useEffect(() => {
     // PostModal이 열려있을 때는 handleClickOutside 작동하지 않음
-    if (selectedPostId) return
+    if (initialPostId) return
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement
@@ -172,7 +164,7 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
 
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [selectedPostId])
+  }, [initialPostId])
 
   const formatDate = (date: Date): string => {
     return `${date.getFullYear()}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`
@@ -188,16 +180,15 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
     }
   }
 
-  // SVG 패턴 생성
   const getDotPattern = (type: Tile['type']) => {
-    let color = '#CDDC39' // lime
+    let color = '#CDDC39'
 
     if (type === 'soil') {
       color = '#CDDC39'
     } else if (type === 'water') {
       color = '#D3EB6C'
     } else if (type.startsWith('grass')) {
-      color = '#7A5448' // brown
+      color = '#7A5448'
     }
 
     return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='none'/%3E%3Crect x='0' y='0' width='6' height='12' fill='${encodeURIComponent(color)}'/%3E%3Crect x='48' y='0' width='6' height='12' fill='${encodeURIComponent(color)}'/%3E%3Crect x='24' y='48' width='6' height='12' fill='${encodeURIComponent(color)}'/%3E%3Crect x='72' y='48' width='6' height='12' fill='${encodeURIComponent(color)}'/%3E%3C/svg%3E`
@@ -205,21 +196,16 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
 
   const displayTile = selectedTile !== null ? selectedTile : hoveredTile
 
-  if (loading) {
-  }
-
   return (
-    <div className="w-screen min-h-screen bg-[#6b5244] flex flex-col font-['Goorm_Sans'] ">
-      {/* Header 제거됨 - CMS 페이지에서만 사용 */}
-      
+    <div className="w-screen min-h-screen bg-[#6b5244] flex flex-col font-['Goorm_Sans']">
       <div
-        className={`flex fixed z-20 flex-col lg:w-fit pointer-events-none pl-4 pt-1 ${selectedPostId ? 'mix-blend-difference' : ''}`}
+        className={`flex fixed z-20 flex-col lg:w-fit pointer-events-none pl-4 pt-1 ${initialPostId ? 'mix-blend-difference' : ''}`}
       >
         <div className='flex lg:justify-start'>
           <motion.div
-            className={`tracking-tight ${selectedPostId ? 'text-white' : 'text-white'}`}
+            className={`tracking-tight ${initialPostId ? 'text-white' : 'text-white'}`}
             animate={{
-              fontSize: (displayTile !== null || selectedPostId) ? 'clamp(2rem, 3.5vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
+              fontSize: (displayTile !== null || initialPostId) ? 'clamp(2rem, 3.5vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
             }}
             transition={{ duration: 0.3 }}
           >
@@ -230,11 +216,11 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
 
       <div className='flex fixed z-20 flex-col gap-2 top-[56px] lg:top-20 xl:top-24 2xl:top-32 pointer-events-none'>
         <AnimatePresence>
-          {(displayTile !== null || selectedPostId) && tiles.length > 0 && (
+          {(displayTile !== null || initialPostId) && tiles.length > 0 && (
             <div className='flex flex-col gap-2 px-4 lg:p-0 pointer-events-auto'>
-              {selectedPostId ? (
+              {initialPostId ? (
                 (() => {
-                  const selectedPost = tiles.flatMap(tile => tile.posts).find(post => post.id === selectedPostId)
+                  const selectedPost = tiles.flatMap(tile => tile.posts).find(post => post.id === initialPostId)
                   return selectedPost ? (
                     <motion.div
                       key={selectedPost.id}
@@ -244,10 +230,7 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
                       className='w-full lg:max-w-[90vw]'
                     >
                       <button
-                        onClick={() => {
-                          setSelectedPostId(selectedPost.id)
-                          window.history.pushState({}, '', `/?postId=${selectedPost.id}`)
-                        }}
+                        onClick={() => onPostSelect(selectedPost.id)}
                         className='tile-title block w-fit text-left bg-black text-white px-3 py-2 lg:px-8 lg:py-4 text-[clamp(1.5rem,4vw,3rem)] font-normal transition-all duration-200'
                       >
                         {selectedPost.title}
@@ -267,15 +250,8 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
                       className='lg:max-w-[90vw]'
                     >
                       <button
-                        onClick={() => {
-                          setSelectedPostId(post.id)
-                          window.history.pushState({}, '', `/?postId=${post.id}`)
-                        }}
-                        className={`tile-title block text-left px-3 py-2 lg:px-8 lg:py-4 text-[clamp(1.5rem,4vw,3rem)] font-normal transition-all duration-200 ${
-                          selectedPostId === post.id
-                            ? 'bg-black text-white'
-                            : 'bg-white text-[#2d2d2d] hover:text-white hover:bg-black focus:text-white focus:bg-black'
-                        }`}
+                        onClick={() => onPostSelect(post.id)}
+                        className='tile-title block text-left px-3 py-2 lg:px-8 lg:py-4 text-[clamp(1.5rem,4vw,3rem)] font-normal transition-all duration-200 bg-white text-[#2d2d2d] hover:text-white hover:bg-black focus:text-white focus:bg-black'
                       >
                         {post.title}
                       </button>
@@ -287,14 +263,12 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
           )}
         </AnimatePresence>
       </div>
+
       <AnimatePresence>
-        {selectedPostId && (
+        {initialPostId && (
           <PostModal
-            postId={selectedPostId}
-            onClose={() => {
-              setSelectedPostId(null)
-              window.history.pushState({}, '', '/')
-            }}
+            postId={initialPostId}
+            onClose={onPostClose}
           />
         )}
       </AnimatePresence>
@@ -313,7 +287,6 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
             onClick={() => handleTileClick(tile)}
             transition={{ duration: 0.2 }}
           >
-            {/* Dot Pattern */}
             <div
               className='absolute inset-0 pointer-events-none'
               style={{
@@ -323,12 +296,10 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
               }}
             />
 
-            {/* Grass */}
             {tile.type.startsWith('grass') && (
               <div className='absolute bottom-0 left-0 right-0 h-full flex items-end justify-around px-[10%] pointer-events-none'></div>
             )}
 
-            {/* Water Ripple */}
             {tile.type === 'water' && (
               <motion.div
                 className='absolute inset-0 bg-blue-400 opacity-20'
@@ -343,7 +314,6 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
               />
             )}
 
-            {/* Info Overlay */}
             <AnimatePresence>
               {displayTile === tile.id && tile.posts.length > 0 && (
                 <motion.div

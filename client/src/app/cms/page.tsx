@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import TypelabGarden from '@/components/Typelabgarden'
 import TypelabList from '@/components/Typelablist'
@@ -11,10 +11,19 @@ import CMSHeader from '@/components/CMSHeader'
 
 export default function CMSPage() {
   const [viewMode, setViewMode] = useState<'garden' | 'list'>('garden')
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+  const searchParams = useSearchParams()
+  const postId = searchParams.get('postId')
+
+  useEffect(() => {
+    if (postId) {
+      setSelectedPostId(postId)
+    }
+  }, [postId])
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,6 +41,40 @@ export default function CMSPage() {
     checkAuth()
   }, [])
 
+  const handleToggle = (show: boolean) => {
+    if (show) {
+      // 리스트 모드로 전환
+      setViewMode('list')
+      // 포스트가 열려있으면 닫기
+      if (selectedPostId) {
+        setSelectedPostId(null)
+        window.history.pushState({}, '', '/cms')
+      }
+    } else {
+      // 잔디밭 모드로 전환
+      setViewMode('garden')
+      // 포스트가 열려있으면 닫기
+      if (selectedPostId) {
+        setSelectedPostId(null)
+        window.history.pushState({}, '', '/cms')
+      }
+    }
+  }
+
+  const handlePostSelect = (postId: string) => {
+    setSelectedPostId(postId)
+    window.history.pushState({}, '', `/cms?postId=${postId}`)
+    // 리스트에서 포스트를 선택하면 리스트 닫기
+    if (viewMode === 'list') {
+      setViewMode('garden')
+    }
+  }
+
+  const handlePostClose = () => {
+    setSelectedPostId(null)
+    window.history.pushState({}, '', '/cms')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#6b5244] flex items-center justify-center">
@@ -45,12 +88,22 @@ export default function CMSPage() {
   return (
     <>
       <CMSHeader />
-      {viewMode === 'garden' ? (
-        <TypelabGarden initialPostId={undefined} />
-      ) : (
-        <TypelabList initialPostId={undefined} />
+      <TypelabGarden 
+        initialPostId={selectedPostId}
+        onPostSelect={handlePostSelect}
+        onPostClose={handlePostClose}
+      />
+      
+      {viewMode === 'list' && (
+        <TypelabList 
+          initialPostId={selectedPostId}
+          onPostSelect={handlePostSelect}
+          onPostClose={handlePostClose}
+          onClose={() => setViewMode('garden')}
+        />
       )}
-      <Toggle viewMode={viewMode} onToggle={setViewMode} />
+      
+      <Toggle showList={viewMode === 'list'} onToggle={handleToggle} />
       <Category viewMode={viewMode} />
     </>
   )
