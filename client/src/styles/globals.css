@@ -245,16 +245,11 @@
     font-style: italic;
   }
 
-  /* 주석 마크 */
+  /* 주석 마크 - 노란색 배경 제거됨 */
   .annotation-mark {
-    background-color: #fef3c7;
     padding: 0 2px;
     border-radius: 2px;
     cursor: help;
-  }
-
-  .annotation-mark:hover {
-    background-color: #fde68a;
   }
 
   .ProseMirror:focus {

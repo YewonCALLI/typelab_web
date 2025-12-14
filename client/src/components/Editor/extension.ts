@@ -75,7 +75,7 @@ export const Annotation = Mark.create({
       'mark',
       mergeAttributes(HTMLAttributes, {
         'data-annotation': HTMLAttributes.id,
-        class: 'annotation-mark bg-yellow-200 cursor-pointer',
+        class: 'annotation-mark cursor-pointer',
       }),
       0,
     ]
