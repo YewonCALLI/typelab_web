@@ -3,8 +3,6 @@ interface CategoryProps {
 }
 
 export default function Category({ viewMode }: CategoryProps) {
-  if (viewMode === 'list') return null
-
   return (
     <div className='fixed z-20 bottom-0 right-0'>
       <div className='bg-white'>

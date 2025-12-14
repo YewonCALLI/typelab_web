@@ -5,30 +5,26 @@ import TypelabGarden from '@/components/Typelabgarden'
 import TypelabList from '@/components/Typelablist'
 import Category from '@/components/Button/Category'
 import Toggle from '@/components/Button/Toggle'
+import { useSearchParams } from 'next/navigation'
 
-interface PageProps {
-  searchParams: Promise<{ postId?: string }>
-}
-
-export default function Page({ searchParams }: PageProps) {
-  const [viewMode, setViewMode] = useState<'garden' | 'list'>('garden')
-  const [postId, setPostId] = useState<string | undefined>(undefined)
-
-  useEffect(() => {
-    searchParams.then((params) => {
-      setPostId(params.postId)
-    })
-  }, [searchParams])
+export default function Page() {
+  const [showList, setShowList] = useState(false)
+  const searchParams = useSearchParams()
+  const postId = searchParams.get('postId')
 
   return (
     <>
-      {viewMode === 'garden' ? (
-        <TypelabGarden initialPostId={postId} />
-      ) : (
-        <TypelabList initialPostId={postId} />
+      <TypelabGarden initialPostId={postId || undefined} />
+      
+      {showList && (
+        <TypelabList 
+          initialPostId={postId || undefined}
+          onClose={() => setShowList(false)}
+        />
       )}
-      <Toggle viewMode={viewMode} onToggle={setViewMode} />
-      <Category viewMode={viewMode} />
+      
+      <Toggle showList={showList} onToggle={setShowList} />
+      <Category viewMode={showList ? 'list' : 'garden'} />
     </>
   )
 }
