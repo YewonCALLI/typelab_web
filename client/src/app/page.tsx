@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import TypelabGarden from '@/components/Typelabgarden'
-import TypelabList from '@/components/Typelablist'
 import Category from '@/components/Button/Category'
 import Toggle from '@/components/Button/Toggle'
-import { useSearchParams } from 'next/navigation'
+import TypelabList from '@/components/Typelablist'
 
 export default function Page() {
-  const [showList, setShowList] = useState(false)
+  const [viewMode, setViewMode] = useState<'garden' | 'list'>('garden')
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const postId = searchParams.get('postId')
@@ -20,31 +20,26 @@ export default function Page() {
   }, [postId])
 
   const handleToggle = (show: boolean) => {
+    // 포스트가 열려있으면 무조건 먼저 닫기
+    if (selectedPostId) {
+      setSelectedPostId(null)
+      window.history.pushState({}, '', '/')
+    }
+    
+    // 모드 전환
     if (show) {
-      // 리스트 모드로 전환
-      setShowList(true)
-      // 포스트가 열려있으면 닫기
-      if (selectedPostId) {
-        setSelectedPostId(null)
-        window.history.pushState({}, '', '/')
-      }
+      setViewMode('list')
     } else {
-      // 잔디밭 모드로 전환
-      setShowList(false)
-      // 포스트가 열려있으면 닫기
-      if (selectedPostId) {
-        setSelectedPostId(null)
-        window.history.pushState({}, '', '/')
-      }
+      setViewMode('garden')
     }
   }
 
   const handlePostSelect = (postId: string) => {
     setSelectedPostId(postId)
     window.history.pushState({}, '', `/?postId=${postId}`)
-    // 리스트에서 포스트를 선택하면 리스트 닫기
-    if (showList) {
-      setShowList(false)
+    // 리스트가 열려있으면 닫기
+    if (viewMode === 'list') {
+      setViewMode('garden')
     }
   }
 
@@ -61,17 +56,17 @@ export default function Page() {
         onPostClose={handlePostClose}
       />
       
-      {showList && (
+      {viewMode === 'list' && (
         <TypelabList 
           initialPostId={selectedPostId}
           onPostSelect={handlePostSelect}
           onPostClose={handlePostClose}
-          onClose={() => setShowList(false)}
+          onClose={() => setViewMode('garden')}
         />
       )}
       
-      <Toggle showList={showList} onToggle={handleToggle} />
-      <Category viewMode={showList ? 'list' : 'garden'} />
+      <Toggle showList={viewMode === 'list'} onToggle={handleToggle} />
+      <Category viewMode={viewMode} />
     </>
   )
 }

@@ -42,29 +42,24 @@ export default function CMSPage() {
   }, [])
 
   const handleToggle = (show: boolean) => {
+    // 포스트가 열려있으면 무조건 먼저 닫기
+    if (selectedPostId) {
+      setSelectedPostId(null)
+      window.history.pushState({}, '', '/cms')
+    }
+    
+    // 모드 전환
     if (show) {
-      // 리스트 모드로 전환
       setViewMode('list')
-      // 포스트가 열려있으면 닫기
-      if (selectedPostId) {
-        setSelectedPostId(null)
-        window.history.pushState({}, '', '/cms')
-      }
     } else {
-      // 잔디밭 모드로 전환
       setViewMode('garden')
-      // 포스트가 열려있으면 닫기
-      if (selectedPostId) {
-        setSelectedPostId(null)
-        window.history.pushState({}, '', '/cms')
-      }
     }
   }
 
   const handlePostSelect = (postId: string) => {
     setSelectedPostId(postId)
     window.history.pushState({}, '', `/cms?postId=${postId}`)
-    // 리스트에서 포스트를 선택하면 리스트 닫기
+    // 리스트가 열려있으면 닫기
     if (viewMode === 'list') {
       setViewMode('garden')
     }
