@@ -174,28 +174,6 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [selectedPostId])
 
-  const getGrassHeight = (type: Tile['type']): number => {
-    switch (type) {
-      case 'grass-short':
-        return 3
-      case 'grass-medium':
-        return 5
-      case 'grass-tall':
-        return 8
-      default:
-        return 0
-    }
-  }
-
-  const getAuthorNames = (posts: Post[]): string => {
-    if (posts.length === 0) return ''
-    if (posts.length === 1) {
-      return profiles[posts[0].author_id]?.display_name || '익명'
-    }
-    const firstAuthor = profiles[posts[0].author_id]?.display_name || '익명'
-    return `${firstAuthor} 외 ${posts.length - 1}명`
-  }
-
   const formatDate = (date: Date): string => {
     return `${date.getFullYear()}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`
   }
@@ -232,7 +210,8 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
 
   return (
     <div className="w-screen min-h-screen bg-[#6b5244] flex flex-col font-['Goorm_Sans'] ">
-      {/* Header */}
+      {/* Header 제거됨 - CMS 페이지에서만 사용 */}
+      
       <div
         className={`flex fixed z-20 flex-col lg:w-fit pointer-events-none pl-4 pt-1 ${selectedPostId ? 'mix-blend-difference' : ''}`}
       >
@@ -247,27 +226,13 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
             Typelab
           </motion.div>
         </div>
-
-        {/* Stats */}
-        {/* <div className='flex gap-8 text-white'>
-          <div className='flex flex-col items-center gap-1'>
-            <div className='text-2xl font-bold text-[#C8D932]'>{totalPosts}</div>
-            <div className='text-sm opacity-80'>총 글 수</div>
-          </div>
-          <div className='flex flex-col items-center gap-1'>
-            <div className='text-2xl font-bold text-[#C8D932]'>{tiles.length}</div>
-            <div className='text-sm opacity-80'>일</div>
-          </div>
-        </div> */}
-
-        {/* Titles */}
       </div>
+
       <div className='flex fixed z-20 flex-col gap-2 top-[56px] lg:top-20 xl:top-24 2xl:top-32 pointer-events-none'>
         <AnimatePresence>
           {(displayTile !== null || selectedPostId) && tiles.length > 0 && (
             <div className='flex flex-col gap-2 px-4 lg:p-0 pointer-events-auto'>
               {selectedPostId ? (
-                // PostModal이 열려있을 때: 선택된 포스트의 타이틀만 표시
                 (() => {
                   const selectedPost = tiles.flatMap(tile => tile.posts).find(post => post.id === selectedPostId)
                   return selectedPost ? (
@@ -291,7 +256,6 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId }) => {
                   ) : null
                 })()
               ) : (
-                // PostModal이 닫혀있을 때: 호버/선택된 타일의 포스트들 표시
                 displayTile !== null && tiles[displayTile]?.posts.length > 0 && (
                   tiles[displayTile].posts.map((post, index) => (
                     <motion.div

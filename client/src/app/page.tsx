@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import TypelabGarden from '@/components/Typelabgarden'
 import TypelabList from '@/components/Typelablist'
 import Category from '@/components/Button/Category'
@@ -14,11 +14,11 @@ export default function Page({ searchParams }: PageProps) {
   const [viewMode, setViewMode] = useState<'garden' | 'list'>('garden')
   const [postId, setPostId] = useState<string | undefined>(undefined)
 
-  useState(() => {
+  useEffect(() => {
     searchParams.then((params) => {
       setPostId(params.postId)
     })
-  })
+  }, [searchParams])
 
   return (
     <>

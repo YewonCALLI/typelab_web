@@ -107,7 +107,9 @@ export default function TypelabList({ initialPostId }: TypelabListProps) {
 
   return (
     <div className="w-screen min-h-screen bg-white font-['Pretendard']">
-      {/* Header */}
+      {/* Header 제거됨 - CMS 페이지에서만 사용 */}
+      
+      {/* Sticky Header */}
       <div className='sticky top-0 bg-white z-10 border-b'>
         <div className='max-w-7xl mx-auto px-4 py-6'>
           <h1 className='text-4xl font-bold mb-4'>Typelab</h1>

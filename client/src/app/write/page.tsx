@@ -13,6 +13,7 @@ export default function WritePage() {
   const [category, setCategory] = useState<'info' | 'document' | 'daily'>('document')
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const router = useRouter()
   const supabase = createClient()
   const [annotations, setAnnotations] = useState<any[]>([])
@@ -22,10 +23,20 @@ export default function WritePage() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
+      
       if (!user) {
         router.push('/login')
       } else {
         setUser(user)
+        
+        // 프로필 정보 가져오기
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        
+        setProfile(profileData)
       }
     }
     checkUser()
@@ -161,7 +172,9 @@ export default function WritePage() {
 
           {/* 작성자 표시 */}
           <div className='bg-gray-50 p-4 rounded-lg'>
-            <p className='font-medium'>작성자: {user.author_id}</p>
+            <p className='font-medium'>
+              작성자: {profile?.display_name || '로딩 중...'}
+            </p>
           </div>
 
           {/* 버튼 */}
