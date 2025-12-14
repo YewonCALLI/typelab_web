@@ -93,7 +93,7 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
     >
       <motion.div
         className='bg-white w-screen max-h-[100vh] overflow-y-auto relative'
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 1, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: 'spring', damping: 25 }}
@@ -118,7 +118,7 @@ export default function PostModal({ postId, onClose }: PostModalProps) {
         </div>
 
         {/* 내용 */}
-        <div className='p-6 mt-0 lg:mt-12 max-w-7xl font-[Pretendard]'>
+        <div className='p-6 mt-0 max-w-7xl font-[Pretendard]'>
           <div className='flex items-center gap-4 mb-4'>
             <span className='text-gray-600 text-sm'>{formatDate(post.published_at)}</span>
             <span className='bg-gray-100 px-3 py-1 rounded text-sm'>{getCategoryLabel(post.category)}</span>

@@ -290,7 +290,7 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({
                     >
                       <button
                         onClick={() => handlePostClick(selectedPost.id)}
-                        className='tile-title block w-fit text-left bg-black text-white px-3 py-2 lg:px-8 lg:py-4 text-[clamp(1.5rem,4vw,3rem)] font-normal transition-all duration-200'
+                        className='tile-title block w-fit text-left bg-black text-white px-3 py-2 text-[clamp(1.5rem,1vw,3rem)] font-normal transition-all duration-200'
                       >
                         {selectedPost.title}
                       </button>
