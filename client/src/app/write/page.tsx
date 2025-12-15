@@ -16,6 +16,7 @@ function WritePageContent() {
   const router = useRouter()
   const supabase = createClient()
   const [annotations, setAnnotations] = useState<any[]>([])
+  const [profile, setProfile] = useState<any>(null)
 
   useEffect(() => {
     const checkUser = async () => {
@@ -31,9 +32,27 @@ function WritePageContent() {
     checkUser()
   }, [])
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+        setProfile(profileData)
+      }
+    }
+    fetchProfile()
+  })
+
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      // 파일 크기 검증 (3MB = 3 * 1024 * 1024 bytes)
+      const maxSize = 3 * 1024 * 1024
+      if (file.size > maxSize) {
+        alert('이미지 크기는 3MB 이하만 업로드 가능합니다.')
+        e.target.value = '' // input 초기화
+        return
+      }
+
       setThumbnail(file)
       const reader = new FileReader()
       reader.onloadend = () => {
@@ -46,6 +65,12 @@ function WritePageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
+
+    // 썸네일 필수 체크
+    if (!thumbnail) {
+      alert('대표 이미지(썸네일)를 등록해주세요.')
+      return
+    }
 
     setLoading(true)
 
@@ -73,7 +98,7 @@ function WritePageContent() {
           author_id: user.id,
           title,
           content,
-          content_json: { annotations }, 
+          content_json: { annotations },
           thumbnail_url: thumbnailUrl,
           category,
         },
@@ -95,17 +120,20 @@ function WritePageContent() {
   return (
     <div className='min-h-screen bg-white p-8'>
       <div className='max-w-4xl mx-auto'>
-        <h1 className='text-3xl font-bold mb-8'>새 글 작성</h1>
+        <h1 className='text-3xl font-bold mb-8'>Typelab</h1>
 
         <form onSubmit={handleSubmit} className='space-y-6'>
           {/* 썸네일 업로드 */}
           <div>
-            <label className='block mb-2 font-semibold'>대표 이미지 (썸네일)</label>
+            <label className='block mb-2 font-semibold'>
+              대표 이미지 (썸네일) <span className='text-black text-sm'>* 최대 3MB까지 업로드 가능합니다.</span>
+            </label>
             <input
               type='file'
               accept='image/*'
               onChange={handleThumbnailChange}
               className='block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800'
+              required
             />
             {thumbnailPreview && (
               <div className='mt-4'>
@@ -131,6 +159,7 @@ function WritePageContent() {
                 </button>
               ))}
             </div>
+            <p className='pt-2 text-sm'>현재는 문서만 선택해 주세요.</p>
           </div>
 
           {/* 제목 */}
@@ -140,7 +169,7 @@ function WritePageContent() {
               type='text'
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#C8D932] focus:border-transparent'
+              className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#000] focus:border-transparent'
               placeholder='제목을 입력하세요'
               required
             />
@@ -160,8 +189,11 @@ function WritePageContent() {
           </div>
 
           {/* 작성자 표시 */}
-          <div className='bg-gray-50 p-4 rounded-lg'>
-            <p className='font-medium'>작성자: {user.author_id}</p>
+          <div className='bg-gray-50 p-4 flex flex-row justify-between items-center rounded-lg'>
+            <p className='font-medium'>작성자: {profile?.display_name}</p>
+            <a href='https://forms.gle/omZrum5pJeXN8KDG6' target='_blank' className='text-black font-medium underline'>
+              불편한 점이 있나요?
+            </a>
           </div>
 
           {/* 버튼 */}
@@ -189,11 +221,13 @@ function WritePageContent() {
 
 export default function WritePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-xl">로딩 중...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className='min-h-screen bg-white flex items-center justify-center'>
+          <div className='text-xl'>로딩 중...</div>
+        </div>
+      }
+    >
       <WritePageContent />
     </Suspense>
   )
