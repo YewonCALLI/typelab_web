@@ -31,11 +31,7 @@ interface TypelabGardenProps {
   onPostClose?: () => void
 }
 
-const TypelabGarden: React.FC<TypelabGardenProps> = ({ 
-  initialPostId,
-  onPostSelect,
-  onPostClose
-}) => {
+const TypelabGarden: React.FC<TypelabGardenProps> = ({ initialPostId, onPostSelect, onPostClose }) => {
   const [tiles, setTiles] = useState<Tile[]>([])
   const [hoveredTile, setHoveredTile] = useState<number | null>(null)
   const [selectedTile, setSelectedTile] = useState<number | null>(null)
@@ -50,9 +46,9 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({
     soil: '#7A5448',
     blue: '#3AA8FF',
     grass: {
-      short: '#CDDC39',
-      medium: '#D3EB6C',
-      tall: '#C8E97D',
+      short: '#CFEA74',
+      medium: '#A7E163',
+      tall: '#6FD657',
     },
   }
 
@@ -234,12 +230,12 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({
 
   // SVG 패턴 생성
   const getDotPattern = (type: Tile['type']) => {
-    let color = '#CDDC39' // lime
+    let color = '#CFEA74' // lime
 
     if (type === 'soil') {
-      color = '#CDDC39'
+      color = '#CFEA74'
     } else if (type === 'water') {
-      color = '#D3EB6C'
+      color = '#CFEA74'
     } else if (type.startsWith('grass')) {
       color = '#7A5448' // brown
     }
@@ -262,7 +258,7 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({
           <motion.div
             className={`tracking-tight ${selectedPostId ? 'text-white' : 'text-white'}`}
             animate={{
-              fontSize: (displayTile !== null || selectedPostId) ? 'clamp(2rem, 3.5vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
+              fontSize: displayTile !== null || selectedPostId ? 'clamp(2rem, 3.5vw, 5rem)' : 'clamp(1rem, 8vw, 9rem)',
             }}
             transition={{ duration: 0.3 }}
           >
@@ -276,30 +272,30 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({
         <AnimatePresence>
           {(displayTile !== null || selectedPostId) && tiles.length > 0 && (
             <div className='flex flex-col gap-2 px-4 lg:p-0 pointer-events-auto'>
-              {selectedPostId ? (
-                // PostModal이 열려있을 때: 선택된 포스트의 타이틀만 표시
-                (() => {
-                  const selectedPost = tiles.flatMap(tile => tile.posts).find(post => post.id === selectedPostId)
-                  return selectedPost ? (
-                    <motion.div
-                      key={selectedPost.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className='w-full lg:max-w-[90vw]'
-                    >
-                      <button
-                        onClick={() => handlePostClick(selectedPost.id)}
-                        className='tile-title block w-fit text-left bg-black text-white px-3 py-2 text-[clamp(1.5rem,1vw,3rem)] font-normal transition-all duration-200'
+              {selectedPostId
+                ? // PostModal이 열려있을 때: 선택된 포스트의 타이틀만 표시
+                  (() => {
+                    const selectedPost = tiles.flatMap((tile) => tile.posts).find((post) => post.id === selectedPostId)
+                    return selectedPost ? (
+                      <motion.div
+                        key={selectedPost.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className='w-full lg:max-w-[90vw]'
                       >
-                        {selectedPost.title}
-                      </button>
-                    </motion.div>
-                  ) : null
-                })()
-              ) : (
-                // PostModal이 닫혀있을 때: 호버/선택된 타일의 포스트들 표시
-                displayTile !== null && tiles[displayTile]?.posts.length > 0 && (
+                        <button
+                          onClick={() => handlePostClick(selectedPost.id)}
+                          className='tile-title block w-fit text-left bg-black text-white px-3 py-2 text-[clamp(1.5rem,1vw,3rem)] font-normal transition-all duration-200'
+                        >
+                          {selectedPost.title}
+                        </button>
+                      </motion.div>
+                    ) : null
+                  })()
+                : // PostModal이 닫혀있을 때: 호버/선택된 타일의 포스트들 표시
+                  displayTile !== null &&
+                  tiles[displayTile]?.posts.length > 0 &&
                   tiles[displayTile].posts.map((post, index) => (
                     <motion.div
                       key={post.id}
@@ -320,20 +316,13 @@ const TypelabGarden: React.FC<TypelabGardenProps> = ({
                         {post.title}
                       </button>
                     </motion.div>
-                  ))
-                )
-              )}
+                  ))}
             </div>
           )}
         </AnimatePresence>
       </div>
       <AnimatePresence>
-        {selectedPostId && (
-          <PostModal
-            postId={selectedPostId}
-            onClose={handleModalClose}
-          />
-        )}
+        {selectedPostId && <PostModal postId={selectedPostId} onClose={handleModalClose} />}
       </AnimatePresence>
 
       {/* Grid */}
