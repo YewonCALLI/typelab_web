@@ -125,13 +125,14 @@
   .ProseMirror {
     min-height: 400px;
     font-family: var(--font-pretendard);
-    line-height: 2;
+    line-height: 2.0;
   }
 
   .prose {
-    line-height: 2;
+    line-height: 2.0;
   }
 
+  
   .ProseMirror p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     float: left;
@@ -200,11 +201,11 @@
     font-family: var(--font-pretendard);
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
-    line-height: 2 !important;
+    line-height: 2.0 !important;
   }
 
   .prose p {
-    line-height: 2 !important;
+    line-height: 2.0 !important;
   }
 
   /* 리스트 스타일 - 에디터용 */
@@ -454,6 +455,23 @@
     word-break: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
+  }
+
+  /* strong, em 태그 줄바꿈 처리 */
+  .ProseMirror strong,
+  .ProseMirror em,
+  .ProseMirror b,
+  .ProseMirror i {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .prose strong,
+  .prose em,
+  .prose b,
+  .prose i {
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   /* 주석 마크 */
